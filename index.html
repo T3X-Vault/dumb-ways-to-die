@@ -41,11 +41,11 @@
   <main id="gameContainer" aria-label="Dumb Ways to Die survival game">
     <canvas id="canvas" width="900" height="675" aria-label="Game canvas"></canvas>
     <header class="hud">
-      <div class="brand"><span class="brand-mark"></span> Survival Run</div>
+      <div class="brand"><span class="brand-mark"></span> Dumb Ways: Last One Standing</div>
       <div class="stats" aria-live="polite">
         <div class="stat"><span class="stat-label">Score</span><span class="stat-value" id="score">0</span></div>
         <div class="stat"><span class="stat-label">Best</span><span class="stat-value" id="highScore">0</span></div>
-        <div class="stat"><span class="stat-label">Combo</span><span class="stat-value" id="combo">x1</span></div>
+        <div class="stat"><span class="stat-label">Combo</span><span class="stat-value" id="combo">x1</span></div><div class="stat"><span class="stat-label">Level</span><span class="stat-value" id="level">1</span></div>
       </div>
     </header>
     <section class="overlay" id="overlay">
@@ -61,21 +61,21 @@
   </main>
   <script>
     const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
-    const ui = { score:document.getElementById('score'), high:document.getElementById('highScore'), combo:document.getElementById('combo'), overlay:document.getElementById('overlay'), title:document.getElementById('cardTitle'), eyebrow:document.getElementById('cardEyebrow'), message:document.getElementById('cardMessage'), start:document.getElementById('startBtn'), sound:document.getElementById('soundBtn') };
+    const ui = { score:document.getElementById('score'), high:document.getElementById('highScore'), combo:document.getElementById('combo'), level:document.getElementById('level'), overlay:document.getElementById('overlay'), title:document.getElementById('cardTitle'), eyebrow:document.getElementById('cardEyebrow'), message:document.getElementById('cardMessage'), start:document.getElementById('startBtn'), sound:document.getElementById('soundBtn') };
     const storedBest = Number(localStorage.getItem('dumbHighScore') || 0);
     let best = storedBest, score = 0, combo = 1, running = false, muted = false, last = 0, spawnTimer = 0, shake = 0;
     let targetX = 450, obstacles = [], particles = [], audioContext;
     const player = { x:450, y:575, radius:24, pulse:0 };
     const colors = { train:'#ff6b8b', bear:'#c48a5a', fire:'#ff9f43', piranha:'#bf8cff', drone:'#54e6d2' };
     ui.high.textContent = best;
-    function reset() { score=0; combo=1; targetX=450; player.x=450; obstacles=[]; particles=[]; spawnTimer=0; ui.score.textContent='0'; ui.combo.textContent='x1'; }
+    function reset() { score=0; combo=1; targetX=450; player.x=450; obstacles=[]; particles=[]; spawnTimer=0; ui.score.textContent='0'; ui.combo.textContent='x1'; ui.level.textContent='1'; ui.eyebrow.textContent='A very avoidable challenge'; ui.title.textContent='Dodge the dumb stuff.'; ui.message.textContent='Move the green bean, survive as long as possible, and build a combo by letting dangers pass.'; ui.start.textContent='Start run'; }
     function start() { reset(); running=true; ui.overlay.classList.add('hidden'); last=performance.now(); requestAnimationFrame(loop); }
     function gameOver() { running=false; shake=16; burst(player.x,player.y,36,'#ff6b8b'); if(score>best){ best=Math.floor(score); localStorage.setItem('dumbHighScore',best); ui.high.textContent=best; ui.eyebrow.textContent='New personal best'; } else ui.eyebrow.textContent='That was impressively avoidable'; ui.title.textContent='Run over.'; ui.message.textContent=`You scored ${Math.floor(score)} with a ${combo}x combo. Ready to make a worse decision?`; ui.start.textContent='Try again'; ui.overlay.classList.remove('hidden'); beep(110,.18); }
     function spawn() { const types=['train','bear','fire','piranha','drone']; const type=types[Math.floor(Math.random()*types.length)]; const margin=45; obstacles.push({ type,x:margin+Math.random()*(canvas.width-margin*2),y:-50,r:type==='train'?29:24,speed:175+Math.random()*95+score*.4,rot:Math.random()*6 }); }
     function burst(x,y,count,color){ for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,s=50+Math.random()*180; particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5+Math.random()*.55,color,size:3+Math.random()*5});} }
     function beep(freq,duration){ if(muted) return; audioContext ||= new (window.AudioContext||window.webkitAudioContext)(); const o=audioContext.createOscillator(),g=audioContext.createGain(); o.frequency.value=freq; g.gain.value=.035; o.connect(g).connect(audioContext.destination); o.start(); o.stop(audioContext.currentTime+duration); }
     function update(dt){ const dx=targetX-player.x; player.x += dx*Math.min(1,dt*10); player.pulse += dt*5; spawnTimer -= dt; if(spawnTimer<=0){spawn(); spawnTimer=Math.max(.26,.72-score/1200)*(0.85+Math.random()*.35);}
-      score += dt*12; ui.score.textContent=Math.floor(score); ui.combo.textContent='x'+combo; 
+      score += dt*(12 + Math.floor(score/420)*1.5); ui.score.textContent=Math.floor(score); ui.combo.textContent='x'+combo; ui.level.textContent=String(1 + Math.floor(score/420)); 
       for(let i=obstacles.length-1;i>=0;i--){const o=obstacles[i]; o.y+=o.speed*dt; o.rot+=dt*2; const d=Math.hypot(player.x-o.x,player.y-o.y); if(d<player.radius+o.r*.82){ gameOver(); return; } if(o.y>canvas.height+70){ obstacles.splice(i,1); combo=Math.min(99,combo+1); score+=combo*2; beep(360+combo*8,.04); } }
       for(let i=particles.length-1;i>=0;i--){const p=particles[i]; p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=280*dt;p.life-=dt;if(p.life<=0)particles.splice(i,1);}
     }
