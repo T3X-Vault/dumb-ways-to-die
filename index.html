@@ -1,369 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dumb Ways to Die</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: #000;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-            touch-action: none;
-        }
-        #gameContainer {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        canvas {
-            background: #87CEEB;
-            display: block;
-            max-width: 100%;
-            max-height: 100%;
-            touch-action: none;
-        }
-        #ui {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            z-index: 10;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-        }
-        button {
-            position: absolute;
-            z-index: 20;
-            padding: 15px 30px;
-            font-size: 24px;
-            background: #ff4444;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        }
-        #startBtn {
-            top: 40%;
-        }
-        #fullscreenBtn {
-            top: 10px;
-            right: 10px;
-        }
-        #songBtn {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#08111f" />
+  <title>Dumb Ways to Die — Survival Run</title>
+  <style>
+    :root { --ink:#f7fbff; --muted:#9fb1c7; --panel:rgba(10,22,40,.78); --line:rgba(255,255,255,.13); --cyan:#54e6d2; --pink:#ff6b8b; --gold:#ffd166; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; overflow:hidden; color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#08111f; touch-action:none; }
+    #gameContainer { position:relative; width:100vw; height:100vh; display:grid; place-items:center; overflow:hidden; background:radial-gradient(circle at 50% -10%, #193d59 0, #08111f 58%, #050a13 100%); }
+    #gameContainer::before { content:""; position:absolute; inset:0; opacity:.2; background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px); background-size:44px 44px; mask-image:linear-gradient(to bottom,black,transparent 75%); pointer-events:none; }
+    canvas { display:block; width:min(100vw, 900px); height:min(100vh, 675px); max-width:100%; max-height:100%; border:1px solid rgba(255,255,255,.14); border-radius:24px; background:#10243a; box-shadow:0 24px 80px rgba(0,0,0,.45); }
+    .hud { position:absolute; top:22px; left:50%; width:min(860px,calc(100% - 32px)); transform:translateX(-50%); display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:3; pointer-events:none; }
+    .brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.04em; font-size:clamp(14px,2vw,18px); text-transform:uppercase; }
+    .brand-mark { width:12px; height:12px; border-radius:50%; background:var(--cyan); box-shadow:0 0 22px var(--cyan); }
+    .stats { display:flex; gap:8px; }
+    .stat { min-width:88px; padding:9px 12px; border:1px solid var(--line); border-radius:14px; background:rgba(5,12,23,.6); backdrop-filter:blur(14px); }
+    .stat-label { display:block; color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    .stat-value { display:block; margin-top:2px; color:var(--gold); font-size:18px; font-weight:900; }
+    .overlay { position:absolute; inset:0; display:grid; place-items:center; z-index:4; padding:24px; background:rgba(3,9,17,.44); transition:opacity .25s,visibility .25s; }
+    .overlay.hidden { opacity:0; visibility:hidden; pointer-events:none; }
+    .card { width:min(430px,100%); padding:32px; border:1px solid var(--line); border-radius:26px; background:linear-gradient(145deg,rgba(17,35,57,.94),rgba(7,17,31,.94)); box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; }
+    .eyebrow { color:var(--cyan); font-size:11px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
+    h1 { margin:12px 0 10px; font-size:clamp(34px,8vw,58px); line-height:.95; letter-spacing:-.07em; }
+    .card p { margin:0 auto 24px; max-width:330px; color:var(--muted); line-height:1.55; }
+    .buttons { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+    button { border:0; color:#07111f; background:var(--cyan); padding:13px 20px; border-radius:13px; font:inherit; font-weight:900; cursor:pointer; box-shadow:0 8px 24px rgba(84,230,210,.18); transition:transform .16s,filter .16s; }
+    button:hover { filter:brightness(1.08); transform:translateY(-2px); }
+    button:focus-visible { outline:3px solid white; outline-offset:3px; }
+    button.secondary { color:var(--ink); background:rgba(255,255,255,.1); box-shadow:none; }
+    .hint { margin-top:18px; color:#71849c; font-size:12px; }
+    .bottom-bar { position:absolute; bottom:22px; left:50%; width:min(860px,calc(100% - 32px)); transform:translateX(-50%); display:flex; justify-content:space-between; align-items:center; z-index:3; }
+    .tip { color:var(--muted); font-size:12px; }
+    .icon-button { padding:10px 13px; color:var(--ink); background:rgba(5,12,23,.65); border:1px solid var(--line); box-shadow:none; }
+    @media (max-width:600px) { .hud { top:14px; } .brand { font-size:12px; } .stats { gap:5px; } .stat { min-width:69px; padding:7px 8px; } .stat-value { font-size:15px; } .bottom-bar { bottom:14px; } .tip { display:none; } .card { padding:26px 22px; } canvas { border-radius:18px; } }
+  </style>
 </head>
 <body>
-    <div id="gameContainer">
-        <canvas id="canvas" width="800" height="600"></canvas>
-        <div id="ui">
-            <div>Score: <span id="score">0</span></div>
-            <div>High Score: <span id="highScore">0</span></div>
-        </div>
-        <button id="startBtn">START GAME</button>
-        <button id="fullscreenBtn">FULLSCREEN</button>
-        <button id="songBtn">🎵 Play Song</button>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        let gameRunning = false;
-        let score = 0;
-        let highScore = localStorage.getItem('dumbHighScore') || 0;
-        document.getElementById('highScore').textContent = highScore;
-
-        // Player
-        let player = { x: 400, y: 500, size: 40, speed: 8 };
-
-        // Obstacles
-        let obstacles = [];
-        let particles = [];
-
-        // Controls
-        let mouseX = player.x;
-        let isTouching = false;
-
-        // Audio
-        let audio = null;
-        let songPlaying = false;
-
-        function resizeCanvas() {
-            const container = document.getElementById('gameContainer');
-            const aspect = 800 / 600;
-            let width = window.innerWidth;
-            let height = window.innerHeight * 0.9;
-            if (width / height > aspect) {
-                width = height * aspect;
-            } else {
-                height = width / aspect;
-            }
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-            canvas.width = 800;
-            canvas.height = 600;
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        // Draw player (dumb green bean)
-        function drawPlayer() {
-            ctx.save();
-            ctx.translate(player.x, player.y);
-            // Body
-            ctx.fillStyle = '#00ff00';
-            ctx.beginPath();
-            ctx.ellipse(0, 0, player.size/2, player.size * 0.6, 0, 0, Math.PI * 2);
-            ctx.fill();
-            // Eyes
-            ctx.fillStyle = 'white';
-            ctx.beginPath(); ctx.arc(-12, -10, 8, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(12, -10, 8, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'black';
-            ctx.beginPath(); ctx.arc(-12, -10, 4, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(12, -10, 4, 0, Math.PI*2); ctx.fill();
-            // Mouth
-            ctx.strokeStyle = 'black';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(0, 5, 10, 0.2, Math.PI - 0.2);
-            ctx.stroke();
-            ctx.restore();
-        }
-
-        // Draw obstacles (dumb ways)
-        function drawObstacle(obs) {
-            ctx.save();
-            ctx.translate(obs.x, obs.y);
-            if (obs.type === 'train') {
-                ctx.fillStyle = '#ff0000';
-                ctx.fillRect(-30, -15, 60, 30);
-            } else if (obs.type === 'bear') {
-                ctx.fillStyle = '#8B4513';
-                ctx.beginPath(); ctx.arc(0, 0, 25, 0, Math.PI*2); ctx.fill();
-            } else if (obs.type === 'fire') {
-                ctx.fillStyle = '#ff8800';
-                ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
-            } else {
-                ctx.fillStyle = '#ff00ff';
-                ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI*2); ctx.fill();
-            }
-            ctx.restore();
-        }
-
-        function createObstacle() {
-            const types = ['train', 'bear', 'fire', 'piranha'];
-            const type = types[Math.floor(Math.random() * types.length)];
-            obstacles.push({
-                x: Math.random() * (canvas.width - 60) + 30,
-                y: -50,
-                size: 40,
-                speed: 3 + Math.random() * 4 + score / 500,
-                type: type
-            });
-        }
-
-        function createParticles(x, y) {
-            for (let i = 0; i < 30; i++) {
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.random() * 10 - 5,
-                    vy: Math.random() * 10 - 5,
-                    life: 40,
-                    color: `hsl(${Math.random()*60}, 100%, 50%)`
-                });
-            }
-        }
-
-        function update() {
-            if (!gameRunning) return;
-
-            // Move player towards mouse/touch
-            const dx = mouseX - player.x;
-            player.x += dx * 0.2;
-            player.x = Math.max(player.size/2, Math.min(canvas.width - player.size/2, player.x));
-
-            // Update obstacles
-            for (let i = obstacles.length - 1; i >= 0; i--) {
-                const obs = obstacles[i];
-                obs.y += obs.speed;
-                if (obs.y > canvas.height + 50) {
-                    obstacles.splice(i, 1);
-                    score += 10;
-                }
-
-                // Collision
-                const dist = Math.hypot(player.x - obs.x, player.y - obs.y);
-                if (dist < player.size/2 + obs.size/2) {
-                    endGame();
-                    return;
-                }
-            }
-
-            // Particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life--;
-                p.vy += 0.3;
-                if (p.life <= 0) particles.splice(i, 1);
-            }
-
-            score += 1;
-            document.getElementById('score').textContent = Math.floor(score);
-
-            // Spawn obstacles
-            if (Math.random() < 0.03 + score / 10000) createObstacle();
-        }
-
-        function draw() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Background elements
-            ctx.fillStyle = '#228B22';
-            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
-
-            drawPlayer();
-
-            obstacles.forEach(obs => drawObstacle(obs));
-            particles.forEach(p => {
-                ctx.fillStyle = p.color;
-                ctx.globalAlpha = p.life / 40;
-                ctx.fillRect(p.x, p.y, 8, 8);
-            });
-            ctx.globalAlpha = 1;
-        }
-
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function startGame() {
-            gameRunning = true;
-            score = 0;
-            obstacles = [];
-            particles = [];
-            document.getElementById('startBtn').style.display = 'none';
-        }
-
-        function endGame() {
-            gameRunning = false;
-            createParticles(player.x, player.y);
-            if (score > highScore) {
-                highScore = Math.floor(score);
-                localStorage.setItem('dumbHighScore', highScore);
-                document.getElementById('highScore').textContent = highScore;
-            }
-            alert(`💀 You died in a DUMB way! Score: ${Math.floor(score)}\nHigh Score: ${highScore}\nRefresh to play again!`);
-            document.getElementById('startBtn').style.display = 'block';
-            document.getElementById('startBtn').textContent = 'PLAY AGAIN';
-        }
-
-        // Controls - Mouse & Touch
-        function handleMove(e) {
-            const rect = canvas.getBoundingClientRect();
-            if (e.touches) {
-                mouseX = e.touches[0].clientX - rect.left;
-            } else {
-                mouseX = e.clientX - rect.left;
-            }
-            mouseX = mouseX * (canvas.width / rect.width); // Scale to canvas coords
-        }
-
-        canvas.addEventListener('mousemove', handleMove);
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            handleMove(e);
-        }, { passive: false });
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleMove(e);
-            isTouching = true;
-        });
-
-        // Buttons
-        document.getElementById('startBtn').addEventListener('click', startGame);
-
-        // Fullscreen
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        fullscreenBtn.addEventListener('click', () => {
-            const container = document.getElementById('gameContainer');
-            if (container.requestFullscreen) {
-                container.requestFullscreen();
-            } else if (container.webkitRequestFullscreen) {
-                container.webkitRequestFullscreen();
-            } else if (container.msRequestFullscreen) {
-                container.msRequestFullscreen();
-            } else {
-                alert("Fullscreen not supported on this device/browser. Try rotating your phone or using landscape mode!");
-            }
-        });
-
-        // Song
-        document.getElementById('songBtn').addEventListener('click', () => {
-            if (!audio) {
-                audio = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (songPlaying) {
-                songPlaying = false;
-                document.getElementById('songBtn').textContent = '🎵 Play Song';
-            } else {
-                songPlaying = true;
-                document.getElementById('songBtn').textContent = '⏹️ Stop Song';
-                playDumbSong();
-            }
-        });
-
-        function playDumbSong() {
-            if (!songPlaying) return;
-            const notes = [262, 294, 330, 349, 392, 440];
-            let i = 0;
-            const interval = setInterval(() => {
-                if (!songPlaying) {
-                    clearInterval(interval);
-                    return;
-                }
-                const osc = audio.createOscillator();
-                osc.frequency.value = notes[i % notes.length];
-                const gain = audio.createGain();
-                osc.connect(gain).connect(audio.destination);
-                osc.start();
-                gain.gain.value = 0.1;
-                setTimeout(() => osc.stop(), 200);
-                i++;
-            }, 250);
-        }
-
-        // Keyboard
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowLeft') mouseX = Math.max(0, mouseX - 50);
-            if (e.key === 'ArrowRight') mouseX = Math.min(canvas.width, mouseX + 50);
-            if (e.key === ' ' && !gameRunning) startGame();
-        });
-
-        // Start loop
-        gameLoop();
-
-        // Spawn
-        setInterval(() => {
-            if (gameRunning && Math.random() < 0.5) createObstacle();
-        }, 800);
-    </script>
+  <main id="gameContainer" aria-label="Dumb Ways to Die survival game">
+    <canvas id="canvas" width="900" height="675" aria-label="Game canvas"></canvas>
+    <header class="hud">
+      <div class="brand"><span class="brand-mark"></span> Survival Run</div>
+      <div class="stats" aria-live="polite">
+        <div class="stat"><span class="stat-label">Score</span><span class="stat-value" id="score">0</span></div>
+        <div class="stat"><span class="stat-label">Best</span><span class="stat-value" id="highScore">0</span></div>
+        <div class="stat"><span class="stat-label">Combo</span><span class="stat-value" id="combo">x1</span></div>
+      </div>
+    </header>
+    <section class="overlay" id="overlay">
+      <div class="card">
+        <div class="eyebrow" id="cardEyebrow">A very avoidable challenge</div>
+        <h1 id="cardTitle">Dodge the dumb stuff.</h1>
+        <p id="cardMessage">Move the green bean, survive as long as possible, and build a combo by letting dangers pass.</p>
+        <div class="buttons"><button id="startBtn">Start run</button><button class="secondary" id="soundBtn">Sound on</button></div>
+        <div class="hint">Mouse, touch, or arrow keys to move</div>
+      </div>
+    </section>
+    <div class="bottom-bar"><div class="tip" id="tip">Tip: near misses build your combo.</div><button class="icon-button" id="fullscreenBtn" aria-label="Toggle fullscreen">Fullscreen</button></div>
+  </main>
+  <script>
+    const canvas = document.getElementById('canvas'), ctx = canvas.getContext('2d');
+    const ui = { score:document.getElementById('score'), high:document.getElementById('highScore'), combo:document.getElementById('combo'), overlay:document.getElementById('overlay'), title:document.getElementById('cardTitle'), eyebrow:document.getElementById('cardEyebrow'), message:document.getElementById('cardMessage'), start:document.getElementById('startBtn'), sound:document.getElementById('soundBtn') };
+    const storedBest = Number(localStorage.getItem('dumbHighScore') || 0);
+    let best = storedBest, score = 0, combo = 1, running = false, muted = false, last = 0, spawnTimer = 0, shake = 0;
+    let targetX = 450, obstacles = [], particles = [], audioContext;
+    const player = { x:450, y:575, radius:24, pulse:0 };
+    const colors = { train:'#ff6b8b', bear:'#c48a5a', fire:'#ff9f43', piranha:'#bf8cff', drone:'#54e6d2' };
+    ui.high.textContent = best;
+    function reset() { score=0; combo=1; targetX=450; player.x=450; obstacles=[]; particles=[]; spawnTimer=0; ui.score.textContent='0'; ui.combo.textContent='x1'; }
+    function start() { reset(); running=true; ui.overlay.classList.add('hidden'); last=performance.now(); requestAnimationFrame(loop); }
+    function gameOver() { running=false; shake=16; burst(player.x,player.y,36,'#ff6b8b'); if(score>best){ best=Math.floor(score); localStorage.setItem('dumbHighScore',best); ui.high.textContent=best; ui.eyebrow.textContent='New personal best'; } else ui.eyebrow.textContent='That was impressively avoidable'; ui.title.textContent='Run over.'; ui.message.textContent=`You scored ${Math.floor(score)} with a ${combo}x combo. Ready to make a worse decision?`; ui.start.textContent='Try again'; ui.overlay.classList.remove('hidden'); beep(110,.18); }
+    function spawn() { const types=['train','bear','fire','piranha','drone']; const type=types[Math.floor(Math.random()*types.length)]; const margin=45; obstacles.push({ type,x:margin+Math.random()*(canvas.width-margin*2),y:-50,r:type==='train'?29:24,speed:175+Math.random()*95+score*.4,rot:Math.random()*6 }); }
+    function burst(x,y,count,color){ for(let i=0;i<count;i++){const a=Math.random()*Math.PI*2,s=50+Math.random()*180; particles.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:.5+Math.random()*.55,color,size:3+Math.random()*5});} }
+    function beep(freq,duration){ if(muted) return; audioContext ||= new (window.AudioContext||window.webkitAudioContext)(); const o=audioContext.createOscillator(),g=audioContext.createGain(); o.frequency.value=freq; g.gain.value=.035; o.connect(g).connect(audioContext.destination); o.start(); o.stop(audioContext.currentTime+duration); }
+    function update(dt){ const dx=targetX-player.x; player.x += dx*Math.min(1,dt*10); player.pulse += dt*5; spawnTimer -= dt; if(spawnTimer<=0){spawn(); spawnTimer=Math.max(.26,.72-score/1200)*(0.85+Math.random()*.35);}
+      score += dt*12; ui.score.textContent=Math.floor(score); ui.combo.textContent='x'+combo; 
+      for(let i=obstacles.length-1;i>=0;i--){const o=obstacles[i]; o.y+=o.speed*dt; o.rot+=dt*2; const d=Math.hypot(player.x-o.x,player.y-o.y); if(d<player.radius+o.r*.82){ gameOver(); return; } if(o.y>canvas.height+70){ obstacles.splice(i,1); combo=Math.min(99,combo+1); score+=combo*2; beep(360+combo*8,.04); } }
+      for(let i=particles.length-1;i>=0;i--){const p=particles[i]; p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=280*dt;p.life-=dt;if(p.life<=0)particles.splice(i,1);}
+    }
+    function draw(){ ctx.save(); if(shake>0){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.88;} ctx.clearRect(0,0,canvas.width,canvas.height); const grad=ctx.createLinearGradient(0,0,0,canvas.height);grad.addColorStop(0,'#142f49');grad.addColorStop(1,'#071525');ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.strokeStyle='rgba(84,230,210,.08)';ctx.lineWidth=1; for(let x=0;x<canvas.width;x+=45){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();} for(let y=0;y<canvas.height;y+=45){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();} ctx.fillStyle='#0d584f';ctx.fillRect(0,canvas.height-42,canvas.width,42);
+      obstacles.forEach(drawObstacle); particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}); ctx.globalAlpha=1; drawPlayer(); ctx.restore();
+    }
+    function drawPlayer(){ctx.save();ctx.translate(player.x,player.y);ctx.scale(1+Math.sin(player.pulse)*.035,1-Math.sin(player.pulse)*.025);ctx.shadowColor='#54e6d2';ctx.shadowBlur=22;ctx.fillStyle='#54e6d2';ctx.beginPath();ctx.ellipse(0,0,25,31,0,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#f7fbff';[-9,9].forEach(x=>{ctx.beginPath();ctx.arc(x,-8,8,0,Math.PI*2);ctx.fill();});ctx.fillStyle='#071525';[-9,9].forEach(x=>{ctx.beginPath();ctx.arc(x,-8,3.5,0,Math.PI*2);ctx.fill();});ctx.strokeStyle='#071525';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,7,10,.2,Math.PI-.2);ctx.stroke();ctx.restore();}
+    function drawObstacle(o){ctx.save();ctx.translate(o.x,o.y);ctx.rotate(o.rot);ctx.shadowColor=colors[o.type];ctx.shadowBlur=18;ctx.fillStyle=colors[o.type]; if(o.type==='train'){ctx.fillRect(-34,-20,68,40);ctx.fillStyle='#fff';ctx.fillRect(-20,-10,12,9);ctx.fillRect(8,-10,12,9);ctx.fillStyle='#08111f';ctx.fillRect(-30,17,15,6);ctx.fillRect(15,17,15,6);} else {ctx.beginPath();ctx.arc(0,0,o.r,0,Math.PI*2);ctx.fill();ctx.shadowBlur=0;ctx.fillStyle='#071525';ctx.beginPath();ctx.arc(-8,-5,4,0,Math.PI*2);ctx.arc(8,-5,4,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#071525';ctx.lineWidth=3;ctx.beginPath();ctx.arc(0,7,9,.1,Math.PI-.1);ctx.stroke();}ctx.restore();}
+    function loop(now){if(!running)return;const dt=Math.min(.04,(now-last)/1000);last=now;update(dt);draw();requestAnimationFrame(loop);}
+    function move(clientX){const r=canvas.getBoundingClientRect();targetX=Math.max(25,Math.min(canvas.width-25,(clientX-r.left)*canvas.width/r.width));}
+    canvas.addEventListener('pointermove',e=>move(e.clientX)); canvas.addEventListener('pointerdown',e=>move(e.clientX)); window.addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='ArrowRight'){targetX+=e.key==='ArrowLeft'?-70:70;targetX=Math.max(25,Math.min(canvas.width-25,targetX));}if(e.key===' '&&!running)start();});
+    ui.start.addEventListener('click',start); ui.sound.addEventListener('click',()=>{muted=!muted;ui.sound.textContent=muted?'Sound off':'Sound on';}); document.getElementById('fullscreenBtn').addEventListener('click',()=>{if(!document.fullscreenElement)document.getElementById('gameContainer').requestFullscreen?.();else document.exitFullscreen?.();});
+    draw();
+  </script>
 </body>
 </html>
