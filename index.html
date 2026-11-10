@@ -6,27 +6,27 @@
   <meta name="theme-color" content="#08111f" />
   <title>Dumb Ways to Die — Survival Run</title>
   <style>
-    :root { --ink:#f7fbff; --muted:#9fb1c7; --panel:rgba(10,22,40,.78); --line:rgba(255,255,255,.13); --cyan:#54e6d2; --pink:#ff6b8b; --gold:#ffd166; }
+    :root { --ink:#193746; --muted:#55717a; --panel:#ffffff; --line:rgba(25,55,70,.14); --cyan:#8ee8d8; --pink:#f36f79; --gold:#ffd35a; --cream:#fff8df; }
     * { box-sizing:border-box; }
-    body { margin:0; min-height:100vh; overflow:hidden; color:var(--ink); font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:#08111f; touch-action:none; }
-    #gameContainer { position:relative; width:100vw; height:100vh; display:grid; place-items:center; overflow:hidden; background:radial-gradient(circle at 50% -10%, #193d59 0, #08111f 58%, #050a13 100%); }
+    body { margin:0; min-height:100vh; overflow:hidden; color:var(--ink); font-family:Arial Rounded MT Bold,ui-rounded,Inter,ui-sans-serif,system-ui,sans-serif; background:#bdeee4; touch-action:none; }
+    #gameContainer { position:relative; width:100vw; height:100vh; display:grid; place-items:center; overflow:hidden; background:linear-gradient(150deg,#bcefe4 0%,#e9fbdf 55%,#fff4cf 100%); }
     #gameContainer::before { content:""; position:absolute; inset:0; opacity:.2; background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px); background-size:44px 44px; mask-image:linear-gradient(to bottom,black,transparent 75%); pointer-events:none; }
-    canvas { display:block; width:min(100vw, 900px); height:min(100vh, 675px); max-width:100%; max-height:100%; border:1px solid rgba(255,255,255,.14); border-radius:24px; background:#10243a; box-shadow:0 24px 80px rgba(0,0,0,.45); }
+    canvas { display:block; width:min(100vw, 900px); height:min(100vh, 675px); max-width:100%; max-height:100%; border:8px solid #fff; border-radius:34px; background:#dff8ed; box-shadow:0 24px 80px rgba(40,96,92,.2); }
     .hud { position:absolute; top:22px; left:50%; width:min(860px,calc(100% - 32px)); transform:translateX(-50%); display:flex; align-items:center; justify-content:space-between; gap:12px; z-index:3; pointer-events:none; }
     .brand { display:flex; align-items:center; gap:10px; font-weight:900; letter-spacing:.04em; font-size:clamp(14px,2vw,18px); text-transform:uppercase; }
     .brand-mark { width:12px; height:12px; border-radius:50%; background:var(--cyan); box-shadow:0 0 22px var(--cyan); }
     .stats { display:flex; gap:8px; }
-    .stat { min-width:88px; padding:9px 12px; border:1px solid var(--line); border-radius:14px; background:rgba(5,12,23,.6); backdrop-filter:blur(14px); }
+    .stat { min-width:88px; padding:9px 12px; border:1px solid var(--line); border-radius:14px; background:rgba(255,255,255,.72); backdrop-filter:blur(14px); }
     .stat-label { display:block; color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
     .stat-value { display:block; margin-top:2px; color:var(--gold); font-size:18px; font-weight:900; }
-    .overlay { position:absolute; inset:0; display:grid; place-items:center; z-index:4; padding:24px; background:rgba(3,9,17,.44); transition:opacity .25s,visibility .25s; }
+    .overlay { position:absolute; inset:0; display:grid; place-items:center; z-index:4; padding:24px; background:rgba(255,249,226,.58); transition:opacity .25s,visibility .25s; }
     .overlay.hidden { opacity:0; visibility:hidden; pointer-events:none; }
-    .card { width:min(430px,100%); padding:32px; border:1px solid var(--line); border-radius:26px; background:linear-gradient(145deg,rgba(17,35,57,.94),rgba(7,17,31,.94)); box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; }
+    .card { width:min(430px,100%); padding:32px; border:1px solid var(--line); border-radius:26px; background:linear-gradient(145deg,rgba(255,255,255,.98),rgba(255,248,223,.98)); box-shadow:0 24px 80px rgba(0,0,0,.5); text-align:center; }
     .eyebrow { color:var(--cyan); font-size:11px; font-weight:900; letter-spacing:.18em; text-transform:uppercase; }
     h1 { margin:12px 0 10px; font-size:clamp(34px,8vw,58px); line-height:.95; letter-spacing:-.07em; }
     .card p { margin:0 auto 24px; max-width:330px; color:var(--muted); line-height:1.55; }
     .buttons { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
-    button { border:0; color:#07111f; background:var(--cyan); padding:13px 20px; border-radius:13px; font:inherit; font-weight:900; cursor:pointer; box-shadow:0 8px 24px rgba(84,230,210,.18); transition:transform .16s,filter .16s; }
+    button { border:0; color:#193746; background:var(--gold); padding:13px 20px; border-radius:13px; font:inherit; font-weight:900; cursor:pointer; box-shadow:0 8px 24px rgba(84,230,210,.18); transition:transform .16s,filter .16s; }
     button:hover { filter:brightness(1.08); transform:translateY(-2px); }
     button:focus-visible { outline:3px solid white; outline-offset:3px; }
     button.secondary { color:var(--ink); background:rgba(255,255,255,.1); box-shadow:none; }
@@ -79,7 +79,7 @@
       for(let i=obstacles.length-1;i>=0;i--){const o=obstacles[i]; o.y+=o.speed*dt; o.rot+=dt*2; const d=Math.hypot(player.x-o.x,player.y-o.y); if(d<player.radius+o.r*.82){ gameOver(); return; } if(o.y>canvas.height+70){ obstacles.splice(i,1); combo=Math.min(99,combo+1); score+=combo*2; beep(360+combo*8,.04); } }
       for(let i=particles.length-1;i>=0;i--){const p=particles[i]; p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=280*dt;p.life-=dt;if(p.life<=0)particles.splice(i,1);}
     }
-    function draw(){ ctx.save(); if(shake>0){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.88;} ctx.clearRect(0,0,canvas.width,canvas.height); const grad=ctx.createLinearGradient(0,0,0,canvas.height);grad.addColorStop(0,'#142f49');grad.addColorStop(1,'#071525');ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
+    function draw(){ ctx.save(); if(shake>0){ctx.translate((Math.random()-.5)*shake,(Math.random()-.5)*shake);shake*=.88;} ctx.clearRect(0,0,canvas.width,canvas.height); const grad=ctx.createLinearGradient(0,0,0,canvas.height);grad.addColorStop(0,'#dff8ed');grad.addColorStop(1,'#9edfd5');ctx.fillStyle=grad;ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.strokeStyle='rgba(84,230,210,.08)';ctx.lineWidth=1; for(let x=0;x<canvas.width;x+=45){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,canvas.height);ctx.stroke();} for(let y=0;y<canvas.height;y+=45){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(canvas.width,y);ctx.stroke();} ctx.fillStyle='#0d584f';ctx.fillRect(0,canvas.height-42,canvas.width,42);
       obstacles.forEach(drawObstacle); particles.forEach(p=>{ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,p.size,p.size);}); ctx.globalAlpha=1; drawPlayer(); ctx.restore();
     }
